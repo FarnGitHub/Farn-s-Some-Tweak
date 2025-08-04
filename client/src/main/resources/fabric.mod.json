@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "seed_selector",
+	"version": "1.1",
+	"name": "Farn's Seed Selector Mod",
+	"description": "A Mod That Allowed you to select seed",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/seedSelector/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+      "farn.SeedSelector.SeedSelectorClient"
+		]
+	},
+	"mixins": [
+    "farnSeedSelect.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "1.0.0-alpha.1.2.1",
+		"osl-entrypoints": ">=0.4.0"
+	}
+}
