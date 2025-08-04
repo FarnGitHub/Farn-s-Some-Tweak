@@ -1,0 +1,22 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "farn.someTweak.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"client": [
+    "TitleScreenMixin",
+    "Accessor.ScreenAccessor",
+    "Accessor.ButtonWidgetAccessor",
+    "Accessor.MinecraftAccessor",
+    "SkinFix.InputPlayerEntityMixin",
+    "SkinFix.OtherPlayerEntityMixin",
+    "LeavesBlockMixin",
+    "ShiftClick.InventoryScreenMixin",
+    "ShiftClick.SlotInventoryMixin",
+    "Accessor.InventoryScreenAccessor",
+    "MinecraftGetter"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
