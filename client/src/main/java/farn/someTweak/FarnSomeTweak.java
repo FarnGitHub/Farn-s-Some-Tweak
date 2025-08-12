@@ -2,31 +2,55 @@ package farn.someTweak;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
 import net.ornithemc.osl.lifecycle.api.MinecraftEvents;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
 import java.io.*;
+import java.util.Properties;
 
 public class FarnSomeTweak implements ClientModInitializer {
 
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod name as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
-
 	public static Minecraft mc;
-	boolean isTakingScreenshot = false;
+
 	public static String skinLink = "http://resourceproxy.pymcl.net/skinapi.php?user=";
 	public static boolean appendPng = true;
 	public static int screenShotKey = Keyboard.KEY_F2;
+	public static int fps = 60;
+
 	private File cfgfile;
+	private final Properties prop = new Properties();
+
+	boolean isTakingScreenshot = false;
+	private static boolean vsyncToggleRequested = false;
+	public static boolean vsyncEnabled;
+
+	private static FarnSomeTweak instance;
+
+	public static void requestVsyncToggle(boolean enabled) {
+		vsyncToggleRequested = true;
+		vsyncEnabled = enabled;
+	}
 
 	@Override
 	public void onInitializeClient() {
-		this.cfgfile = new File(mc.getRunDirectory(), "Farn_options.txt");
-		loadOption();
-		MinecraftEvents.TICK_END.register(minecraft -> {
+		MinecraftEvents.START.register(minecraft -> {
+			mc = minecraft;
+			instance = this;
+			this.cfgfile = new File(mc.getRunDirectory(), "Farn_options.cfg");
+			loadOption();
+		});
+
+		MinecraftEvents.READY.register(minecraft -> {
+			Display.setVSyncEnabled(vsyncEnabled);
+		});
+
+		MinecraftEvents.TICK_START.register(minecraft -> {
+			if (vsyncToggleRequested) {
+				Display.setVSyncEnabled(vsyncEnabled);
+				vsyncToggleRequested = false;
+			}
+
 			if(mc.world != null) {
 				this.screenshotListener();
 			}
@@ -47,67 +71,39 @@ public class FarnSomeTweak implements ClientModInitializer {
 	}
 
 	public void loadOption() {
-		try {
-			if (!this.cfgfile.exists()) {
-				createFile();
-			}
-
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(this.cfgfile));
-			String string = "";
-
-			while ((string = bufferedReader.readLine()) != null) {
-				String[] strings = string.split("#");
-				if (strings[0].equals("skinLink")) {
-					this.skinLink = strings[1];
-				}
-
-				if (strings[0].equals("sound")) {
-					this.appendPng = strings[1].equals("true");
-				}
-
-				if (strings[0].equals("screenShotKey")) {
-					this.screenShotKey = Keyboard.getKeyIndex(strings[1]);
-				}
-			}
-
-			bufferedReader.close();
-		} catch (Exception var5) {
-			var5.printStackTrace();
+		if(!cfgfile.exists()) {
+			createOrSaveFile();
+		}
+		try (FileInputStream in = new FileInputStream(cfgfile)) {
+			prop.load(in);
+			skinLink = prop.getProperty("skinLink", skinLink);
+			appendPng = Boolean.parseBoolean(prop.getProperty("appendPng",  String.valueOf(appendPng)));
+			screenShotKey = Keyboard.getKeyIndex(prop.getProperty("screenShotKey",  Keyboard.getKeyName(screenShotKey)));
+			fps = Integer.parseInt(prop.getProperty("fps", String.valueOf(fps)));
+			vsyncEnabled = Boolean.parseBoolean(prop.getProperty("vsync", String.valueOf(vsyncEnabled)));
+		} catch (IOException e) {
+			System.out.println("Failed to load Farn_options.cfg");
+			e.printStackTrace();
 		}
 	}
 
-	public static boolean fc_isShiftPressed() {
-		return Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
-	}
-
-	public static boolean fc_canStacksMerge(ItemStack itemStack1, ItemStack itemStack2) {
-		return itemStack1 != null && itemStack2 != null ? (itemStack1.itemId == itemStack2.itemId && itemStack1.metadata == itemStack2.metadata ? itemStack1.size + itemStack2.size <= itemStack1.getItem().getMaxStackSize() : false) : false;
-	}
-
-	public static int fc_getMergeCount(ItemStack itemStack1, ItemStack itemStack2) {
-		if(itemStack1 != null && itemStack2 != null) {
-			if(itemStack1.itemId == itemStack2.itemId && itemStack1.metadata == itemStack2.metadata) {
-				int i3 = itemStack1.getItem().getMaxStackSize() - (itemStack1.size + itemStack2.size);
-				return i3 >= 0 ? itemStack1.size : itemStack1.size + i3;
-			} else {
-				return 0;
-			}
-		} else {
-			return 0;
-		}
-	}
-
-	public void createFile() {
+	public void createOrSaveFile() {
 		try {
 			PrintWriter printWriter1 = new PrintWriter(new FileWriter(this.cfgfile));
-			printWriter1.println("skinLink#" + this.skinLink);
-			printWriter1.println("appendPng#" + this.appendPng);
-			printWriter1.println("screenShotKey#" + Keyboard.getKeyName(screenShotKey));
+			printWriter1.println("skinLink=" + skinLink);
+			printWriter1.println("appendPng=" + appendPng);
+			printWriter1.println("screenShotKey=" + Keyboard.getKeyName(screenShotKey));
+			printWriter1.println("fps=" + fps);
+			printWriter1.println("vsync=" + vsyncEnabled);
 			printWriter1.close();
 		} catch (Exception exception3) {
 			exception3.printStackTrace();
 		}
 
+	}
+
+	public static FarnSomeTweak getInstance() {
+		return instance;
 	}
 
 }

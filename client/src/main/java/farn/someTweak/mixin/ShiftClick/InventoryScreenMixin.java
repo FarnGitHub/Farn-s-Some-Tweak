@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.menu.InventoryMenuScreen;
 import net.minecraft.inventory.slot.InventorySlot;
+import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,26 +30,26 @@ public abstract class InventoryScreenMixin {
 	abstract InventorySlot getHoveredSlot(int mouseX, int mouseY);
 
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	public void mouseClicked(int i1, int i2, int i3, CallbackInfo info) {
-		if(i3 == 0 || i3 == 1) {
-			InventorySlot slot4 = this.getHoveredSlot(i1, i2);
-			int i5 = (theScreen.width - this.xSize) / 2;
-			int i6 = (theScreen.height - this.ySize) / 2;
-			boolean z7 = i1 < i5 || i2 < i6 || i1 >= i5 + this.xSize || i2 >= i6 + this.ySize;
-			int i8 = -1;
-			if(slot4 != null) {
-				i8 = menu.indexOf(slot4);
+	public void mouseClicked(int mouseX, int mouseY, int button, CallbackInfo info) {
+		if (button == 0 || button == 1) {
+			InventorySlot hoveredSlot = this.getHoveredSlot(mouseX, mouseY);
+			int guiLeft = (theScreen.width - this.xSize) / 2;
+			int guiTop = (theScreen.height - this.ySize) / 2;
+			boolean clickedOutside = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + this.xSize || mouseY >= guiTop + this.ySize;
+			int slotIndex = -1;
+			if (hoveredSlot != null) {
+				slotIndex = menu.indexOf(hoveredSlot);
+			}
+			if (clickedOutside) {
+				slotIndex = -999;
 			}
 
-			if(z7) {
-				i8 = -999;
-			}
+			boolean shiftPressed = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);  // detects shift key
 
-			if(i8 != -1) {
-				ConvenientInventory.mod_convenientInventory_handleClickOnSlot(i8, i3, z7, FarnSomeTweak.mc, this.menu);
-			}
+			ConvenientInventory.mod_convenientInventory_handleClickOnSlot(slotIndex, button, clickedOutside, FarnSomeTweak.mc, this.menu, shiftPressed);
+
+			info.cancel();
 		}
-		info.cancel();
 	}
 
 }

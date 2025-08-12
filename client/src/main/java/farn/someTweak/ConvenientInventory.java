@@ -13,27 +13,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.menu.SurvivalInventoryScreen;
 import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.slot.InventorySlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.unmapped.C_0350299;
 import net.minecraft.unmapped.C_4065940;
 import org.lwjgl.input.Keyboard;
 
 public class ConvenientInventory {
-	private static final int MOVE_ONE_AND_STACK = 3;
-	private static final int MOVE_ONE = 4;
-	private static final int MOVE_STACK_AND_STACK = 1;
-	private static final int MOVE_STACK = 2;
-	private static final int MOVE_ALL_AND_STACK = 5;
-	private static final int MOVE_ALL = 6;
-	private static final int SORT = 7;
-	private static final int DROP_ONE = 8;
-	private static final int DROP_STACK = 9;
-	private static final int DROP_ALL = 10;
-	private static final int NORMAL_LEFT_CLICK = 11;
-	private static final int NORMAL_RIGHT_CLICK = 12;
-	private static final int NONE = 0;
 	static List[][] actionMap = new List[13][];
 	static boolean initialized = false;
+	private static Object craftingInventory; // assign this.f_5256776.f_7385352 somewhere
+	private static Object playerInventory; // assign PlayerInventory instance somewhere
 
 	private static void initialize() {
 		try {
@@ -197,7 +188,7 @@ public class ConvenientInventory {
 		return i1;
 	}
 
-	public static void mod_convenientInventory_handleClickOnSlot(int i0, int i1, boolean z2, Minecraft minecraft3, List craftingInventoryCB4) {
+	/*public static void mod_convenientInventory_handleClickOnSlot(int i0, int i1, boolean z2, Minecraft minecraft3, List craftingInventoryCB4) {
 		if(!initialized) {
 			initialize();
 		}
@@ -384,6 +375,244 @@ public class ConvenientInventory {
 			}
 		}
 
+	}*/
+
+	public static void mod_convenientInventory_handleClickOnSlot(
+		int slotIndex, int mouseButton, boolean unusedFlag,
+		Minecraft minecraft, List craftingInventorySlots, boolean shiftClick) {
+
+		if (!initialized) {
+			initialize();
+		}
+
+		List slots = craftingInventorySlots;
+		if (FarnSomeTweak.mc.player == null) return;
+
+		if (slotIndex < 0) {
+			// Click outside inventory (-999)
+			if ((mouseButton == 0 || mouseButton == 1) && slotIndex == -999) {
+				sendClick(craftingInventorySlots, minecraft, slotIndex, mouseButton);
+			}
+			return;
+		}
+
+		Object clickedSlot = slots.get(slotIndex);
+
+		// Shift-click on crafting output slot: move crafted item to inventory
+		/*if (shiftClick && isCraftingSlot(clickedSlot)) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, 0); // pick crafted item
+			moveStackToInventory(minecraft, craftingInventorySlots, slots);
+			return;
+		}
+
+		// Shift-click on crafting grid slots (normal click)
+		if (shiftClick && isCraftingGridSlot(clickedSlot)) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, mouseButton);
+			return;
+		}*/
+
+		int actionCode = getAction(mouseButton);
+		int inventorySize = slots.size();
+		int hotbarStart = inventorySize - 9;
+		int containerStart = inventorySize - getInventorySize(minecraft);
+
+		int playerInvStart, playerInvEnd, containerEnd, containerCurrent;
+		containerCurrent = playerInvEnd = playerInvStart = containerStart;
+
+		if (slotIndex < containerStart) {
+			if (isPlayerInventory(minecraft)) {
+				playerInvStart = containerStart - 4;
+				playerInvEnd = playerInvStart - 4;
+			}
+			containerEnd = inventorySize;
+			containerCurrent = 0;
+		} else {
+			if (isPlayerInventory(minecraft)) {
+				containerEnd = inventorySize - 4;
+				playerInvStart = containerEnd;
+				playerInvEnd = containerEnd;
+			} else {
+				containerEnd = inventorySize;
+			}
+			containerStart = 0;
+			containerCurrent = inventorySize;
+		}
+
+		boolean inPlayerSubRange = playerInvStart <= slotIndex && playerInvEnd > slotIndex;
+		int pressedNumberKey = getPressedNumberKey();
+
+		// Number key quick-swap logic
+		if (!isCraftingSlot(clickedSlot) && !inPlayerSubRange && pressedNumberKey > 0) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+			sendClick(craftingInventorySlots, minecraft, hotbarStart + pressedNumberKey - 1, 0);
+			if (getStackInHand(minecraft) != null && !isCraftingSlot(clickedSlot)) {
+				sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+			}
+			return;
+		}
+
+		// No number key pressed, normal quick drop/place
+		if (!isCraftingSlot(clickedSlot) && !inPlayerSubRange && pressedNumberKey == 0) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+			dropOnExistingStack(minecraft, craftingInventorySlots, slots, hotbarStart, inventorySize, true);
+			if (getStackInHand(minecraft) != null && !isCraftingSlot(clickedSlot)) {
+				sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+			}
+			return;
+		}
+
+		// Handle click action codes
+		if (actionCode == 0) {
+			if (mouseButton == 0 || mouseButton == 1) {
+				sendClick(craftingInventorySlots, minecraft, slotIndex, mouseButton);
+			}
+		} else if (actionCode == 11) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+		} else if (actionCode == 12) {
+			sendClick(craftingInventorySlots, minecraft, slotIndex, 1);
+		} else if (actionCode == 7) {
+			int start = containerCurrent;
+			int end = playerInvStart;
+			if (slotIndex < start) start = 0;
+			else if (slotIndex < inventorySize - 9) end = inventorySize - 9;
+			else {
+				end = inventorySize;
+				start = end - 9;
+			}
+			sortInventory(slots, minecraft, craftingInventorySlots, start, end);
+		} else {
+			switch (actionCode) {
+				case 3: case 4: case 8:
+					sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+					if (!inPlayerSubRange && isPlayerInventory(minecraft) && actionCode != 8) {
+						dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, playerInvStart, playerInvEnd, false);
+					}
+					boolean isCrafting = isCraftingSlot(clickedSlot);
+					if (actionCode == 4) {
+						dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, isCrafting);
+					} else if (actionCode == 3) {
+						dropOnExistingStack(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, isCrafting);
+					} else if (actionCode == 8) {
+						sendClick(craftingInventorySlots, minecraft, -999, 1);
+					}
+					if (getStackInHand(minecraft) != null && !isCraftingSlot(clickedSlot)) {
+						sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+					}
+					break;
+
+				case 2: case 1: case 9:
+					if (isCraftingSlot(clickedSlot)) {
+						Object stack = null;
+						int count = 0;
+						int prevSize;
+						do {
+							count++;
+							prevSize = stack != null ? getStackSize(stack) : 0;
+							sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+							stack = getStackInHand(minecraft);
+						} while (stack != null && prevSize < getStackSize(stack) && count < 70);
+					} else {
+						sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+					}
+
+					if (!inPlayerSubRange && isPlayerInventory(minecraft) && actionCode != 9) {
+						dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, playerInvStart, playerInvEnd, false);
+					}
+
+					if (actionCode == 2) {
+						dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, true);
+					} else if (actionCode == 1) {
+						dropOnExistingStack(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, true);
+					} else if (actionCode == 9) {
+						sendClick(craftingInventorySlots, minecraft, -999, 0);
+					}
+
+					if (getStackInHand(minecraft) != null && !isCraftingSlot(clickedSlot)) {
+						sendClick(craftingInventorySlots, minecraft, slotIndex, 0);
+					}
+					break;
+
+				case 6: case 5: case 10:
+					int itemId = -1;
+					int itemDamage = -1;
+					Object clickedStack = getStackOfSlot(clickedSlot);
+					boolean isSingleStack = false;
+					if (clickedStack != null) {
+						itemId = getItemStackId(clickedStack);
+						itemDamage = getItemStackDamage(clickedStack);
+						isSingleStack = getMaxStackSize(clickedStack) == 1;
+					}
+					if (itemId == -1) return;
+
+					boolean done = false;
+					while (getStackInHand(minecraft) == null && !done) {
+						done = true;
+						for (int i = containerCurrent; i < playerInvStart; i++) {
+							Object stack = getStackOfSlot(slots.get(i));
+							if (stack != null
+								&& getItemStackId(stack) == itemId
+								&& (isSingleStack || getItemStackDamage(stack) == itemDamage)
+								&& (actionCode == 10 || hasFreeSlot(minecraft, slots, containerStart, containerEnd, itemId, itemDamage, getStackSize(stack), actionCode == 5, isCraftingSlot(clickedSlot))
+							)) {
+								sendClick(craftingInventorySlots, minecraft, i, 0);
+								i = playerInvStart; // break loop
+								done = false;
+							}
+						}
+
+						if (actionCode == 6) {
+							dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, true);
+						} else if (actionCode == 5) {
+							dropOnExistingStack(minecraft, craftingInventorySlots, slots, containerStart, containerEnd, true);
+						} else if (actionCode == 10) {
+							sendClick(craftingInventorySlots, minecraft, -999, 0);
+						}
+					}
+					if (getStackInHand(minecraft) != null && !isCraftingSlot(clickedSlot)) {
+						dropIntoFreeSlot(minecraft, craftingInventorySlots, slots, containerCurrent, playerInvStart, true);
+					}
+					break;
+
+				default:
+					System.out.println("ConvenientInventory: Unknown actionCode " + actionCode);
+					break;
+			}
+		}
+	}
+
+	// Helper to move held stack to inventory/hotbar (simplified)
+	private static void moveStackToInventory(Minecraft minecraft, List craftingInventorySlots, List slots) {
+		Object heldStack = getStackInHand(minecraft);
+		if (heldStack == null) return;
+
+		int inventoryStart = slots.size() - 36; // last 36 slots are player inventory + hotbar
+		int inventoryEnd = slots.size();
+
+		for (int i = inventoryStart; i < inventoryEnd; i++) {
+			Object slotStack = getStackOfSlot(slots.get(i));
+			if (slotStack == null || canStacksMerge(heldStack, slotStack)) {
+				sendClick(craftingInventorySlots, minecraft, i, 0);
+				if (getStackInHand(minecraft) == null) break;
+			}
+		}
+	}
+
+	private static boolean canStacksMerge(Object stack1, Object stack2) {
+		if (stack1 == null || stack2 == null) return false;
+
+		int id1 = getItemStackId(stack1);
+		int id2 = getItemStackId(stack2);
+		if (id1 != id2) return false;
+
+		int damage1 = getItemStackDamage(stack1);
+		int damage2 = getItemStackDamage(stack2);
+		if (damage1 != damage2) return false;
+
+		int size1 = getStackSize(stack1);
+		int size2 = getStackSize(stack2);
+		int maxSize = getMaxStackSize(stack1);
+
+		return (size1 + size2) <= maxSize;
 	}
 
 	private static int getPressedNumberKey() {
@@ -678,6 +907,16 @@ public class ConvenientInventory {
 		return object0 instanceof C_4065940;
 	}
 
+	private static boolean isCraftingGridSlot(Object slot) {
+		if(slot instanceof InventorySlot) {
+			boolean isCraftingInventory = ((InventorySlot)slot).inventory instanceof CraftingInventory;
+			System.out.println(isCraftingInventory);
+			return isCraftingInventory;
+		}
+		return false;
+	}
+
+
 	private static int getInventorySize(Minecraft minecraft0) {
 		return minecraft0.player.inventory.getSize() - 4;
 	}
@@ -704,9 +943,5 @@ public class ConvenientInventory {
 
 	private static boolean isItemStackValidInSlot(Object object0, Object object1) {
 		return ((InventorySlot)object1).canSetStack((ItemStack)object0);
-	}
-
-	public static ItemStack decrStackSize(PlayerInventory inventory, InventorySlot slot, int i1) {
-		return inventory.removeStack(slot.slot, i1);
 	}
 }

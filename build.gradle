@@ -11,6 +11,11 @@ def configure(project) {
 	project.apply plugin: 'fabric-loom'
 	project.apply plugin: 'ploceus'
 
+	project.tasks.named("runClient") {
+		//betacraft.uk to fix skin
+		jvmArgs"-Djava.util.Arrays.useLegacyMergeSort=true"
+	}
+
 	project.base {
 		archivesName = "${project.rootProject.archives_base_name}-${project.environment}"
 	}
@@ -48,7 +53,7 @@ def configure(project) {
 		mappings project.ploceus.featherMappings(project.feather_build)
 		exceptions project.ploceus.raven(project.raven_build, '*') // remove this line if not using exceptions patches
 		signatures project.ploceus.sparrow(project.sparrow_build, '*') // remove this line if not using generics patches
-		nests project.ploceus.nests(project.nests_build, '*') // remove this line if not using inner class patches
+		nests project.ploceus.nests(project.nests_build,'*') // remove this line if not using inner class patches
 
 		modImplementation "net.fabricmc:fabric-loader:${project.rootProject.loader_version}"
 

@@ -23,9 +23,9 @@ public abstract class TitleScreenMixin {
 			return;
 		}
 
-		ButtonWidget theButton = (ButtonWidget) ((ScreenAccessor)this.titleScreen).getButtonsList().get(3);
-		((ButtonWidgetAccessor)theButton).setWidth(98);
-		((ButtonWidgetAccessor)theButton).setHeight(20);
+		ButtonWidget theOptionButton = (ButtonWidget) ((ScreenAccessor)this.titleScreen).getButtonsList().get(3);
+		((ButtonWidgetAccessor) theOptionButton).setWidth(98);
+		((ButtonWidgetAccessor) theOptionButton).setHeight(20);
 		ButtonWidget theQuitButton = new ButtonWidget(100, titleScreen.width / 2 + 2, (titleScreen.height / 4 + 48) + 84, "Quit Game...");
 		((ButtonWidgetAccessor)theQuitButton).setWidth(98);
 		((ButtonWidgetAccessor)theQuitButton).setHeight(20);

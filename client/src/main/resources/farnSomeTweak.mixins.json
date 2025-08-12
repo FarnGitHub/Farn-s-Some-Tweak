@@ -10,12 +10,16 @@
     "Accessor.MinecraftAccessor",
     "SkinFix.InputPlayerEntityMixin",
     "SkinFix.OtherPlayerEntityMixin",
-    "LeavesBlockMixin",
+    "Block.LeavesBlockMixin",
     "ShiftClick.InventoryScreenMixin",
     "ShiftClick.SlotInventoryMixin",
     "Accessor.InventoryScreenAccessor",
     "GameOptionMixin",
-    "MinecraftGetter"
+    "Block.BlockMixin",
+    "Block.BlockStairMixin",
+    "CraftingManagerMixin",
+    "Accessor.ShapedRecipeAccessor",
+    "MinecraftMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
