@@ -30,7 +30,10 @@ public class CraftingManagerMixin {
 
 			if (output != null && (output.itemId == Block.STONE_SLAB.id || output.itemId == Block.STONE_STAIRS.id || output.itemId == Block.OAK_STAIRS.id)) {
 				// Create a new ItemStack with count 6
-				ItemStack newOutput = new ItemStack(output.itemId, 6);
+				ItemStack newOutput = new ItemStack(output.itemId, 8);
+				if(output.itemId == Block.STONE_SLAB.id) {
+					newOutput = new ItemStack(output.itemId, 6);
+				}
 
 				// Create new ShapedRecipe with same width, height, ingredients, but new output stack
 				ShapedRecipe newRecipe = new ShapedRecipe(
