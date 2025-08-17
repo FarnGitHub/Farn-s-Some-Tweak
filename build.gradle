@@ -1,8 +1,8 @@
 plugins {
 	id 'java'
 	id 'maven-publish'
-	id 'fabric-loom' version '1.10-SNAPSHOT' apply false
-	id 'ploceus' version '1.10-SNAPSHOT' apply false
+	id 'fabric-loom' version '1.11-SNAPSHOT' apply false
+	id 'ploceus' version '1.11-SNAPSHOT' apply false
 }
 
 def configure(project) {
@@ -23,21 +23,11 @@ def configure(project) {
 	project.maven_group = project.rootProject.maven_group
 
 	project.loom {
-		if (project.environment == 'client') {
-			clientOnlyMinecraftJar()
-		}
-		if (project.environment == 'server') {
-			serverOnlyMinecraftJar()
-		}
+		clientOnlyMinecraftJar()
 	}
 
 	project.ploceus {
-		if (project.environment == 'client') {
-			clientOnlyMappings()
-		}
-		if (project.environment == 'server') {
-			serverOnlyMappings()
-		}
+		clientOnlyMappings()
 	}
 
 	project.repositories {
@@ -120,3 +110,4 @@ def configure(project) {
 		}
 	}
 }
+configure(project)

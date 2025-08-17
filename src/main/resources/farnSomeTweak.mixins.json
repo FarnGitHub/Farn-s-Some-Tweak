@@ -1,0 +1,32 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "farn.another_alpha_mod.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"client": [
+    "TitleScreenMixin",
+    "accessor.ScreenAccessor",
+    "accessor.ButtonWidgetAccessor",
+    "accessor.MinecraftAccessor",
+    "player.InputPlayerEntityMixin",
+    "player.OtherPlayerEntityMixin",
+    "world.LeavesBlockMixin",
+    "convenient_inventory.InventoryScreenMixin",
+    "convenient_inventory.SlotInventoryMixin",
+    "accessor.InventoryScreenAccessor",
+    "GameOptionMixin",
+    "world.BlockMixin",
+    "world.CraftingManagerMixin",
+    "accessor.ShapedRecipeAccessor",
+    "GameGuiMixin",
+    "world.BoatEntityMixin",
+    "world.BlockStairMixin",
+    "player.command.EntityPlayerMixin",
+    "player.command.EntityMixin",
+    "player.command.LivingEntityMixin",
+    "MinecraftMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

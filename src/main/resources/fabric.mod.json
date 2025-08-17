@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "farn_some_tweak",
+	"version": "${version}",
+	"name": "The AnotherAlphaMod",
+	"description": "Alot of improvement to a1.1.2_01",
+	"authors": [
+		"farnfarn02",
+    "ggggaaaannnngggg (Leaf Decay Fix)",
+    "Shadoxalex1 (Convenient Inventory)",
+    "Skellz64 (Single Player Command)"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/AnotherAlphaMod/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+      "farn.another_alpha_mod.AnotherAlphaMod"
+		]
+	},
+	"mixins": [
+    "farnSomeTweak.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "1.0.0-alpha.1.2.1",
+		"osl-entrypoints": ">=0.4.0"
+	}
+}
