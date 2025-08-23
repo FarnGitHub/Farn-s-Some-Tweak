@@ -1,6 +1,7 @@
 package farn.another_alpha_mod;
 
 import farn.another_alpha_mod.sub_mod.ScreenShotHelper;
+import farn.another_alpha_mod.sub_mod.texturepack.TexturePackList;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ChatScreen;
@@ -23,11 +24,13 @@ public class AnotherAlphaMod implements ClientModInitializer {
 
 	private static boolean vsyncToggleRequested = false;
 	public static boolean vsyncEnabled;
+	public static TexturePackList texturePackList;
 
 	@Override
 	public void onInitializeClient() {
 		MinecraftEvents.START.register(minecraft -> {
 			mc = minecraft;
+			texturePackList = new TexturePackList(minecraft, Minecraft.getRunDirectory());
 			AnotherAlphaConfig.instance.init();
 		});
 

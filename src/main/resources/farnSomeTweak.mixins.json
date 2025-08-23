@@ -24,6 +24,8 @@
     "player.command.EntityPlayerMixin",
     "player.command.EntityMixin",
     "player.command.LivingEntityMixin",
+    "texturepack.TexturePackManagerMixin",
+    "texturepack.PauseScreenMixin",
     "MinecraftMixin"
 	],
 	"injectors": {
